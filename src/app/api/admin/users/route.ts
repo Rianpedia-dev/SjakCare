@@ -34,7 +34,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Menggunakan better-auth admin API untuk membuat user
-    await auth.api.admin.createUser({
+    // Casting ke any untuk menghindari error tipe pada saat build Next.js
+    await (auth.api as any).admin.createUser({
       headers: await headers(),
       body: {
         email,
@@ -64,7 +65,8 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Menggunakan better-auth admin API untuk set role
-    await auth.api.admin.setRole({
+    // Casting ke any untuk menghindari error tipe pada saat build Next.js
+    await (auth.api as any).admin.setRole({
       headers: await headers(),
       body: {
         userId: id,
@@ -92,7 +94,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Menggunakan better-auth admin API untuk menghapus user
-    await auth.api.admin.removeUser({
+    // Casting ke any untuk menghindari error tipe pada saat build Next.js
+    await (auth.api as any).admin.removeUser({
       headers: await headers(),
       body: {
         userId: id,
