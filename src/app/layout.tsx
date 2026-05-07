@@ -15,6 +15,16 @@ export const metadata: Metadata = {
   description:
     "Sistem pendukung kesehatan mental mahasiswa berbasis AI. Konsultasi, dukungan emosional, dan informasi kesehatan mental.",
   keywords: ["kesehatan mental", "mahasiswa", "AI", "konsultasi", "SjakCare"],
+  icons: {
+    icon: [
+      { url: "/logo-sjakcare.png" },
+      { url: "/logo-sjakcare.png", sizes: "32x32", type: "image/png" },
+    ],
+    shortcut: ["/logo-sjakcare.png"],
+    apple: [
+      { url: "/logo-sjakcare.png" },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -24,6 +34,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" suppressHydrationWarning className={`${inter.variable} h-full antialiased`}>
+      <head>
+        <link rel="icon" href="/logo-sjakcare.png" />
+      </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider
           attribute="class"

@@ -2,18 +2,18 @@
 
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   MessageCircle,
   History,
   User,
   Heart,
-  Sparkles,
   TrendingUp,
   BookOpen,
 } from "lucide-react";
 import { useSession } from "@/lib/auth/auth-client";
+import Image from "next/image";
 
 const quickActions = [
   {
@@ -89,8 +89,16 @@ export default function DashboardPage() {
           <p className="text-muted-foreground text-sm md:text-base">
             Selamat datang kembali di SjakCare. Bagaimana perasaanmu hari ini? Jangan ragu untuk berbagi cerita.
           </p>
-          <Link href="/chat" className={cn(buttonVariants({ variant: "default", size: "lg" }), "mt-4 gap-2 shadow-sm")}>
-            <Sparkles className="h-4 w-4" />
+          <Link href="/chat" className={cn(buttonVariants({ variant: "default", size: "lg" }), "mt-4 gap-2.5 shadow-sm active:scale-95 transition-all")}>
+            <div className="h-5 w-5 flex items-center justify-center">
+              <Image 
+                src="/logo-sjakcare.png" 
+                alt="Logo" 
+                width={20} 
+                height={20} 
+                className="object-contain"
+              />
+            </div>
             Mulai Konsultasi AI
           </Link>
         </CardContent>

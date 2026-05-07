@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 export function LoginForm() {
   const router = useRouter();
@@ -31,7 +32,7 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      const { error: authError } = await signIn.email({
+      const { data, error: authError } = await signIn.email({
         email,
         password,
       });
@@ -39,8 +40,14 @@ export function LoginForm() {
       if (authError) {
         setError(authError.message || "Email atau kata sandi salah. Silakan coba lagi.");
       } else {
+        const userRole = data?.user?.role;
         toast.success("Berhasil masuk!");
-        router.push("/dashboard");
+        
+        if (userRole === "admin") {
+          router.push("/admin");
+        } else {
+          router.push("/dashboard");
+        }
       }
     } catch {
       setError("Terjadi kesalahan pada sistem. Silakan coba lagi.");
@@ -52,8 +59,14 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-md border-0 shadow-xl bg-card/80 backdrop-blur-sm">
       <CardHeader className="text-center pb-2">
-        <div className="mx-auto mb-4 h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
-          <span className="text-primary-foreground font-bold text-xl">SC</span>
+        <div className="mx-auto mb-4 h-16 w-16 flex items-center justify-center transition-transform hover:scale-105 duration-300">
+          <Image 
+            src="/logo-sjakcare.png" 
+            alt="SjakCare Logo" 
+            width={64} 
+            height={64} 
+            className="object-contain"
+          />
         </div>
         <CardTitle className="text-2xl font-bold">Masuk ke SjakCare</CardTitle>
         <CardDescription className="text-sm">

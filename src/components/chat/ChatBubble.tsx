@@ -1,6 +1,11 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bot, User } from "lucide-react";
+import { motion } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface ChatBubbleProps {
   role: "user" | "assistant";
@@ -12,36 +17,61 @@ export function ChatBubble({ role, content, timestamp }: ChatBubbleProps) {
   const isUser = role === "user";
 
   return (
-    <div className={cn("flex gap-3 max-w-[85%]", isUser ? "ml-auto flex-row-reverse" : "mr-auto")}>
-      <Avatar className={cn("h-8 w-8 shrink-0 border-2", isUser ? "border-primary/30" : "border-emerald-500/30")}>
-        <AvatarFallback className={cn("text-xs font-semibold", isUser ? "bg-primary/10 text-primary" : "bg-emerald-500/10 text-emerald-600")}>
-          {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+    <motion.div
+      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className={cn(
+        "flex gap-3 max-w-[85%] group",
+        isUser ? "ml-auto flex-row-reverse" : "mr-auto"
+      )}
+    >
+      <Avatar
+        className={cn(
+          "h-9 w-9 shrink-0 border-2 transition-transform group-hover:scale-105",
+          isUser 
+            ? "border-primary/20 bg-primary/5" 
+            : "border-emerald-500/20 bg-emerald-500/5"
+        )}
+      >
+        <AvatarFallback 
+          className={cn(
+            "text-xs font-semibold",
+            isUser ? "text-primary" : "text-emerald-600"
+          )}
+        >
+          {isUser ? <User className="h-4.5 w-4.5" /> : <Bot className="h-4.5 w-4.5" />}
         </AvatarFallback>
       </Avatar>
 
-      <div className={cn("space-y-1", isUser ? "items-end" : "items-start")}>
+      <div className={cn("flex flex-col gap-1", isUser ? "items-end" : "items-start")}>
         <div
           className={cn(
-            "rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
+            "relative rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm transition-all",
             isUser
-              ? "bg-primary text-primary-foreground rounded-tr-md"
-              : "bg-card border rounded-tl-md"
+              ? "bg-primary text-primary-foreground rounded-tr-none"
+              : "bg-card border border-border/50 rounded-tl-none hover:border-border"
           )}
         >
-          {/* Render content with line breaks */}
-          {content.split("\n").map((line, i) => (
-            <span key={i}>
-              {line}
-              {i < content.split("\n").length - 1 && <br />}
-            </span>
-          ))}
+          <div className={cn(
+            "prose prose-sm max-w-none dark:prose-invert",
+            isUser ? "prose-p:text-primary-foreground" : "prose-p:text-foreground"
+          )}>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {content}
+            </ReactMarkdown>
+          </div>
         </div>
+        
         {timestamp && (
-          <p className={cn("text-[10px] text-muted-foreground px-1", isUser && "text-right")}>
+          <span className={cn(
+            "text-[10px] font-medium text-muted-foreground/60 px-1 opacity-0 group-hover:opacity-100 transition-opacity",
+            isUser && "text-right"
+          )}>
             {timestamp}
-          </p>
+          </span>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

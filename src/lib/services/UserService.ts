@@ -31,16 +31,38 @@ export class UserService extends BaseService {
     }
   }
 
-  async updateUserRole(id: string, role: "user" | "admin") {
+  async updateUserRole(id: string, role: string) {
     try {
       await this.database
         .update(user)
-        .set({ role, updatedAt: new Date() })
+        .set({ role: role as any, updatedAt: new Date() })
         .where(eq(user.id, id));
 
       this.log("updateRole", { userId: id, newRole: role });
     } catch (error) {
       this.handleError(error, "mengubah role pengguna");
+    }
+  }
+
+  async updateUser(id: string, data: Partial<typeof user.$inferInsert>) {
+    try {
+      await this.database
+        .update(user)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(user.id, id));
+
+      this.log("updateUser", { userId: id });
+    } catch (error) {
+      this.handleError(error, "memperbarui data pengguna");
+    }
+  }
+
+  async deleteUser(id: string) {
+    try {
+      await this.database.delete(user).where(eq(user.id, id));
+      this.log("deleteUser", { userId: id });
+    } catch (error) {
+      this.handleError(error, "menghapus pengguna");
     }
   }
 

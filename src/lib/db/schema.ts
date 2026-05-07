@@ -14,6 +14,10 @@ export const user = pgTable("user", {
   emailVerified: boolean("emailVerified").notNull().default(false),
   image: text("image"),
   role: text("role").notNull().default("user"),
+  // Tambahkan kolom yang diperlukan oleh plugin Better Auth Admin
+  banned: boolean("banned").notNull().default(false),
+  banReason: text("banReason"),
+  banExpires: timestamp("banExpires"),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });

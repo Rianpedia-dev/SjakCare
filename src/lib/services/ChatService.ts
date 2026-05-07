@@ -10,7 +10,6 @@ import { detectCrisis, CRISIS_RESPONSE } from "@/lib/ai/content-filter";
  */
 export class ChatService extends BaseService {
 
-  // ENCAPSULATION: method publik, detail internal tersembunyi
   async createSession(userId: string, title?: string) {
     try {
       const [newSession] = await this.database
@@ -26,13 +25,15 @@ export class ChatService extends BaseService {
       return newSession;
     } catch (error) {
       this.handleError(error, "membuat sesi konsultasi");
+      throw error;
     }
   }
 
-  // POLYMORPHISM: handleResponse beda implementasi untuk krisis vs normal
   async sendMessage(consultationId: string, userMessage: string) {
     try {
-      // Simpan pesan user
+      console.log(`[ChatService] Sending message for consultation: ${consultationId}`);
+      
+      // 1. Simpan pesan user ke DB
       await this.database.insert(message).values({
         id: crypto.randomUUID(),
         consultationId,
@@ -40,18 +41,19 @@ export class ChatService extends BaseService {
         content: userMessage,
       });
 
-      // Content filtering - deteksi krisis
+      // 2. Deteksi Krisis
       if (detectCrisis(userMessage)) {
         return this.handleCrisisResponse(consultationId);
       }
 
-      return this.handleNormalResponse(consultationId);
+      // 3. Respon Normal
+      return await this.handleNormalResponse(consultationId);
     } catch (error) {
-      this.handleError(error, "mengirim pesan");
+      console.error("[ChatService] sendMessage Error:", error);
+      throw error;
     }
   }
 
-  // POLYMORPHISM: handling berbeda untuk respons krisis
   private async handleCrisisResponse(consultationId: string) {
     await this.database.insert(message).values({
       id: crypto.randomUUID(),
@@ -64,25 +66,34 @@ export class ChatService extends BaseService {
     return { response: CRISIS_RESPONSE, isCrisis: true };
   }
 
-  // POLYMORPHISM: handling berbeda untuk respons normal
   private async handleNormalResponse(consultationId: string) {
-    const history = await this.getMessages(consultationId);
-    const chatMessages = history.map((msg) => ({
-      role: msg.role as "user" | "assistant",
-      content: msg.content,
-    }));
+    try {
+      // Ambil riwayat chat untuk konteks AI
+      const history = await this.getMessages(consultationId);
+      const chatMessages = history.map((msg) => ({
+        role: msg.role as "user" | "assistant",
+        content: msg.content,
+      }));
 
-    const aiResponse = await sendMessageToAI(chatMessages);
+      // Panggil AI
+      const aiResponse = await sendMessageToAI(chatMessages);
 
-    await this.database.insert(message).values({
-      id: crypto.randomUUID(),
-      consultationId,
-      role: "assistant",
-      content: aiResponse,
-    });
+      // Simpan balasan AI ke DB
+      await this.database.insert(message).values({
+        id: crypto.randomUUID(),
+        consultationId,
+        role: "assistant",
+        content: aiResponse,
+      });
 
-    this.log("normalResponse", { consultationId });
-    return { response: aiResponse, isCrisis: false };
+      this.log("normalResponse", { consultationId });
+      return { response: aiResponse, isCrisis: false };
+    } catch (error) {
+      console.error("[ChatService] handleNormalResponse Error:", error);
+      // Fallback response jika AI gagal tapi user message sudah tersimpan
+      const fallbackMsg = "Maaf, sistem AI kami sedang sibuk. Bisa tolong ulangi pertanyaanmu?";
+      return { response: fallbackMsg, isCrisis: false, error: true };
+    }
   }
 
   async getMessages(consultationId: string) {
@@ -100,5 +111,4 @@ export class ChatService extends BaseService {
   }
 }
 
-// Singleton instance
 export const chatService = new ChatService();
