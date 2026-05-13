@@ -109,6 +109,22 @@ export class ChatService extends BaseService {
       orderBy: (c, { desc }) => [desc(c.updatedAt)],
     });
   }
+
+  /**
+   * POLYMORPHISM: Implementasi spesifik untuk ChatService
+   * Menangani respons dari AI atau basis data
+   */
+  handleResponse(data: any) {
+    if (!data) return null;
+    
+    // Jika data adalah respons AI
+    if (typeof data === 'string') {
+      return { type: 'ai_response', content: data };
+    }
+
+    // Jika data adalah objek hasil DB
+    return { type: 'db_result', data };
+  }
 }
 
 export const chatService = new ChatService();

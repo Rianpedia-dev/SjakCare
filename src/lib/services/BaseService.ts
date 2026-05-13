@@ -24,4 +24,10 @@ export abstract class BaseService {
   protected log(action: string, details?: Record<string, unknown>): void {
     console.log(`[${this.constructor.name}] ${action}`, details || "");
   }
+
+  /**
+   * POLYMORPHISM: Method ini diimplementasikan secara berbeda oleh tiap child class
+   * tergantung pada jenis respons yang ditangani.
+   */
+  abstract handleResponse(data: unknown): unknown;
 }

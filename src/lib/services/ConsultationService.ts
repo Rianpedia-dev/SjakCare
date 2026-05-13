@@ -29,6 +29,13 @@ export class ConsultationService extends BaseService {
       this.handleError(error, "menghitung total pesan");
     }
   }
+
+  /**
+   * POLYMORPHISM: Implementasi spesifik untuk ConsultationService
+   */
+  handleResponse(data: any) {
+    return { status: "success", result: data };
+  }
 }
 
 export const consultationService = new ConsultationService();

@@ -76,6 +76,16 @@ export class UserService extends BaseService {
       this.handleError(error, "menghitung total pengguna");
     }
   }
+
+  /**
+   * POLYMORPHISM: Implementasi spesifik untuk UserService
+   * Menangani data pengguna dari basis data
+   */
+  handleResponse(data: any) {
+    if (!data) return null;
+    this.log("processUserData", { count: Array.isArray(data) ? data.length : 1 });
+    return data;
+  }
 }
 
 export const userService = new UserService();
