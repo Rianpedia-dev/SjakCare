@@ -25,7 +25,7 @@ export function DisclaimerModal({ open, onAccept }: DisclaimerModalProps) {
             <AlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
           </div>
           <DialogTitle className="text-lg">Pemberitahuan Penting</DialogTitle>
-          <DialogDescription className="text-left space-y-3 pt-2">
+          <div className="text-left space-y-3 pt-2 text-sm text-muted-foreground">
             <p>
               Layanan chatbot AI ini bersifat sebagai{" "}
               <strong className="text-foreground">PENDUKUNG AWAL</strong> dan{" "}
@@ -50,7 +50,7 @@ export function DisclaimerModal({ open, onAccept }: DisclaimerModalProps) {
             <p className="text-xs">
               Dengan melanjutkan, Anda memahami dan menyetujui bahwa layanan ini bersifat pendukung awal.
             </p>
-          </DialogDescription>
+          </div>
         </DialogHeader>
         <DialogFooter className="sm:justify-center">
           <Button onClick={onAccept} className="w-full sm:w-auto gap-2 font-semibold">

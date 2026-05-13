@@ -6,7 +6,16 @@ import { chatService } from "@/lib/services/ChatService";
 export async function POST(request: NextRequest) {
   try {
     // 1. Autentikasi
-    const session = await auth.api.getSession({ headers: await headers() });
+    const allHeaders = await headers();
+    const cookieHeader = allHeaders.get("cookie") || "";
+    const session = await auth.api.getSession({ headers: allHeaders });
+    
+    console.log("DEBUG: Auth Session:", session ? "Found" : "Not Found");
+    console.log("DEBUG: Cookie Header Present:", !!cookieHeader);
+    if (cookieHeader) {
+      console.log("DEBUG: Cookie names:", cookieHeader.split(';').map(c => c.split('=')[0].trim()));
+    }
+
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
