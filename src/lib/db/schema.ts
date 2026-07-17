@@ -122,3 +122,14 @@ export const messageRelations = relations(message, ({ one }) => ({
     references: [consultation.id],
   }),
 }));
+
+// ===== TABLE: knowledge_base =====
+export const knowledgeBase = pgTable("knowledge_base", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  category: text("category").notNull(), // 'stress' | 'anxiety' | 'academic' | 'cbt'
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+

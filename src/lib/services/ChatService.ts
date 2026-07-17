@@ -3,6 +3,7 @@ import { consultation, message } from "@/lib/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { sendMessageToAI } from "@/lib/ai/openrouter";
 import { detectCrisis, CRISIS_RESPONSE } from "@/lib/ai/content-filter";
+import { knowledgeService } from "./KnowledgeService";
 
 /**
  * ChatService - Chat/AI Service
@@ -137,8 +138,15 @@ export class ChatService extends BaseService {
         content: msg.content,
       }));
 
-      // Panggil AI
-      const aiResponse = await sendMessageToAI(chatMessages);
+      // Cari dokumen pengetahuan yang relevan dengan keluhan pengguna (RAG)
+      const lastUserMsgObj = [...history].reverse().find((m) => m.role === "user");
+      const lastUserMessage = lastUserMsgObj ? lastUserMsgObj.content : "";
+      const knowledgeContext = lastUserMessage
+        ? await knowledgeService.findRelevantKnowledge(lastUserMessage)
+        : null;
+
+      // Panggil AI dengan menyisipkan konteks dokumen jika ada
+      const aiResponse = await sendMessageToAI(chatMessages, knowledgeContext);
 
       // Simpan balasan AI ke DB
       await this.database.insert(message).values({

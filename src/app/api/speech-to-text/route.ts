@@ -71,6 +71,14 @@ export async function POST(request: NextRequest) {
       } catch {
         detailMsg = errText;
       }
+
+      if (
+        elevenRes.status === 401 &&
+        (detailMsg.toLowerCase().includes("quota") || detailMsg.toLowerCase().includes("credit") || detailMsg.toLowerCase().includes("credit_limit"))
+      ) {
+        throw new Error("Kredit pesan suara telah habis. Silakan gunakan pesan teks saja.");
+      }
+
       throw new Error(`ElevenLabs API error (${elevenRes.status}): ${detailMsg}`);
     }
 
@@ -81,8 +89,12 @@ export async function POST(request: NextRequest) {
     return Response.json({ text: result.text });
   } catch (error: any) {
     console.error("❌ [STT] Error:", error);
+    let message = error.message || "Gagal mengubah suara menjadi teks. Silakan coba lagi.";
+    if (message.toLowerCase().includes("quota") || message.toLowerCase().includes("credit")) {
+      message = "Kredit pesan suara telah habis. Silakan gunakan pesan teks saja.";
+    }
     return Response.json(
-      { error: error.message || "Gagal mengubah suara menjadi teks. Silakan coba lagi." },
+      { error: message },
       { status: 500 }
     );
   }

@@ -104,7 +104,15 @@ export function VoiceRecorder({
           }
         } catch (err: any) {
           console.error("STT Error:", err);
-          setError(err.message || "Gagal memproses suara. Silakan coba lagi.");
+          let friendlyMsg = err.message || "Gagal memproses suara. Silakan coba lagi.";
+          if (
+            friendlyMsg.toLowerCase().includes("kredit") ||
+            friendlyMsg.toLowerCase().includes("quota") ||
+            friendlyMsg.toLowerCase().includes("credit")
+          ) {
+            friendlyMsg = "Kredit pesan suara telah habis. Silakan gunakan pesan teks saja.";
+          }
+          setError(friendlyMsg);
         } finally {
           setIsTranscribing(false);
         }

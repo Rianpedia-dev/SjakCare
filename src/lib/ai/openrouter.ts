@@ -6,7 +6,8 @@ interface ChatMessage {
 }
 
 export async function sendMessageToAI(
-  messages: ChatMessage[]
+  messages: ChatMessage[],
+  knowledgeContext?: string | null
 ): Promise<string> {
   try {
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -29,10 +30,18 @@ export async function sendMessageToAI(
         model: "google/gemini-2.5-flash", // Menggunakan model yang lebih stabil dan hemat di OpenRouter
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
+          ...(knowledgeContext
+            ? [
+                {
+                  role: "system",
+                  content: `Gunakan informasi referensi ilmiah berikut sebagai panduan utama untuk merumuskan jawaban Anda jika relevan dengan keluhan pengguna:\n${knowledgeContext}`,
+                } as ChatMessage,
+              ]
+            : []),
           ...messages,
         ],
         temperature: 0.7,
-        max_tokens: 1024,
+        max_tokens: 500,
       }),
     });
 
