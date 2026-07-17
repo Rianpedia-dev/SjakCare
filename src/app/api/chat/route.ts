@@ -30,3 +30,16 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const deleted = await chatService.deleteAllSessions(session.user.id);
+    return NextResponse.json({ success: true, count: deleted.length });
+  } catch (error) {
+    console.error("DELETE All Chat Sessions Error:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}

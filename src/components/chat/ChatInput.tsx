@@ -1,20 +1,24 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { SendHorizontal, Loader2, Sparkles } from "lucide-react";
+import { SendHorizontal, Loader2, Sparkles, Mic, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { VoiceRecorder } from "./VoiceRecorder";
 
 interface ChatInputProps {
-  onSend: (message: string) => void;
+  onSend: (message: string, isVoice?: boolean) => void;
   isLoading?: boolean;
   disabled?: boolean;
 }
 
 export function ChatInput({ onSend, isLoading = false, disabled = false }: ChatInputProps) {
   const [message, setMessage] = useState("");
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
+  const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-resize textarea
@@ -30,7 +34,7 @@ export function ChatInput({ onSend, isLoading = false, disabled = false }: ChatI
     e.preventDefault();
     const trimmed = message.trim();
     if (!trimmed || isLoading || disabled) return;
-    onSend(trimmed);
+    onSend(trimmed, false);
     setMessage("");
   };
 
@@ -41,6 +45,44 @@ export function ChatInput({ onSend, isLoading = false, disabled = false }: ChatI
     }
   };
 
+  const handleStartVoice = useCallback(async () => {
+    try {
+      setVoiceError(null);
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setAudioStream(stream);
+      setIsVoiceMode(true);
+    } catch (err) {
+      console.error("Mic access error:", err);
+      setVoiceError("Tidak dapat mengakses mikrofon. Pastikan izin mikrofon sudah diberikan.");
+    }
+  }, []);
+
+  const handleVoiceTranscription = useCallback((text: string) => {
+    setIsVoiceMode(false);
+    if (audioStream) {
+      audioStream.getTracks().forEach((track) => track.stop());
+      setAudioStream(null);
+    }
+    onSend(text, true);
+  }, [audioStream, onSend]);
+
+  const handleVoiceCancel = useCallback(() => {
+    setIsVoiceMode(false);
+    if (audioStream) {
+      audioStream.getTracks().forEach((track) => track.stop());
+      setAudioStream(null);
+    }
+  }, [audioStream]);
+
+  // Cleanup audioStream on ChatInput unmount
+  useEffect(() => {
+    return () => {
+      if (audioStream) {
+        audioStream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [audioStream]);
+
   return (
     <div className="border-t bg-card/50 backdrop-blur-sm p-4 relative overflow-hidden">
       {/* Decorative background element */}
@@ -48,57 +90,104 @@ export function ChatInput({ onSend, isLoading = false, disabled = false }: ChatI
       
       <form onSubmit={handleSubmit} className="relative z-10">
         <div className="flex items-end gap-3 max-w-3xl mx-auto">
-          <div className="relative flex-1 group">
-            <Textarea
-              ref={textareaRef}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ceritakan apa yang kamu rasakan..."
-              disabled={isLoading || disabled}
-              className={cn(
-                "min-h-[48px] max-h-32 resize-none rounded-2xl border-border/50 bg-background/50",
-                "focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-all duration-200 px-4 py-3",
-                "placeholder:text-muted-foreground/50 text-sm leading-relaxed"
-              )}
-              rows={1}
-            />
-            <div className="absolute right-3 bottom-2.5 opacity-0 group-focus-within:opacity-100 transition-opacity">
-              <Sparkles className="h-3.5 w-3.5 text-primary/40" />
-            </div>
-          </div>
-          
-          <Button
-            type="submit"
-            size="icon"
-            disabled={!message.trim() || isLoading || disabled}
-            className={cn(
-              "h-12 w-12 rounded-2xl shrink-0 shadow-lg shadow-primary/10 transition-all active:scale-95",
-              message.trim() ? "bg-primary" : "bg-muted text-muted-foreground"
+          <AnimatePresence mode="wait">
+            {isVoiceMode ? (
+              <motion.div
+                key="voice"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="flex-1"
+              >
+                <VoiceRecorder
+                  stream={audioStream!}
+                  onTranscription={handleVoiceTranscription}
+                  onCancel={handleVoiceCancel}
+                  disabled={isLoading || disabled}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="text"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="flex-1 flex items-end gap-3"
+              >
+                {/* Text input */}
+                <div className="relative flex-1 group">
+                  <Textarea
+                    ref={textareaRef}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Ceritakan apa yang kamu rasakan..."
+                    disabled={isLoading || disabled}
+                    className={cn(
+                      "min-h-[48px] max-h-32 resize-none rounded-2xl border-border/50 bg-background/50",
+                      "focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-all duration-200 px-4 py-3",
+                      "placeholder:text-muted-foreground/50 text-sm leading-relaxed"
+                    )}
+                    rows={1}
+                  />
+                  <div className="absolute right-3 bottom-2.5 opacity-0 group-focus-within:opacity-100 transition-opacity">
+                    <Sparkles className="h-3.5 w-3.5 text-primary/40" />
+                  </div>
+                </div>
+
+                {/* Mic button */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  disabled={isLoading || disabled}
+                  className={cn(
+                    "h-12 w-12 rounded-2xl shrink-0 text-muted-foreground",
+                    "hover:text-primary hover:bg-primary/10 transition-all active:scale-95"
+                  )}
+                  onClick={handleStartVoice}
+                  title="Kirim pesan suara"
+                >
+                  <Mic className="h-5 w-5" />
+                </Button>
+                
+                {/* Send button */}
+                <Button
+                  type="submit"
+                  size="icon"
+                  disabled={!message.trim() || isLoading || disabled}
+                  className={cn(
+                    "h-12 w-12 rounded-2xl shrink-0 shadow-lg shadow-primary/10 transition-all active:scale-95",
+                    message.trim() ? "bg-primary" : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  <AnimatePresence mode="wait">
+                    {isLoading ? (
+                      <motion.div
+                        key="loading"
+                        initial={{ opacity: 0, rotate: -90 }}
+                        animate={{ opacity: 1, rotate: 0 }}
+                        exit={{ opacity: 0, rotate: 90 }}
+                      >
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="send"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                      >
+                        <SendHorizontal className={cn("h-5 w-5", message.trim() && "animate-in fade-in zoom-in duration-300")} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </Button>
+              </motion.div>
             )}
-          >
-            <AnimatePresence mode="wait">
-              {isLoading ? (
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0, rotate: -90 }}
-                  animate={{ opacity: 1, rotate: 0 }}
-                  exit={{ opacity: 0, rotate: 90 }}
-                >
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="send"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                >
-                  <SendHorizontal className={cn("h-5 w-5", message.trim() && "animate-in fade-in zoom-in duration-300")} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </Button>
+          </AnimatePresence>
         </div>
         
         <motion.p 
@@ -109,6 +198,28 @@ export function ChatInput({ onSend, isLoading = false, disabled = false }: ChatI
           SjakCare AI dirancang untuk mendukungmu. <span className="text-primary/60">Privasi dan kenyamananmu adalah prioritas kami.</span>
         </motion.p>
       </form>
+
+      <AnimatePresence>
+        {voiceError && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="flex items-center justify-between gap-3 max-w-3xl mx-auto mt-3 px-4 py-2.5 rounded-2xl bg-destructive/5 border border-destructive/20 text-xs text-destructive font-medium"
+          >
+            <span>{voiceError}</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 rounded-full shrink-0 hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => setVoiceError(null)}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

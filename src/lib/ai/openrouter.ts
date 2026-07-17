@@ -26,7 +26,7 @@ export async function sendMessageToAI(
         "X-Title": "SjakCare Mental Health Support",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-lite-001", // Menggunakan model yang lebih stabil dan hemat di OpenRouter
+        model: "google/gemini-2.5-flash", // Menggunakan model yang lebih stabil dan hemat di OpenRouter
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           ...messages,

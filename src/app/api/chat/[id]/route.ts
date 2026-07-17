@@ -46,3 +46,25 @@ export async function POST(
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const resolvedParams = await params;
+    const deleted = await chatService.deleteSession(resolvedParams.id, session.user.id);
+    
+    if (!deleted) {
+      return NextResponse.json({ error: "Sesi tidak ditemukan atau Anda tidak memiliki akses" }, { status: 404 });
+    }
+    
+    return NextResponse.json({ success: true, deleted });
+  } catch (error) {
+    console.error("DELETE Chat Session Error:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}

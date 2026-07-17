@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
@@ -11,6 +13,7 @@ import {
   Heart,
   TrendingUp,
   BookOpen,
+  Loader2,
 } from "lucide-react";
 import { useSession } from "@/lib/auth/auth-client";
 import Image from "next/image";
@@ -61,8 +64,22 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const userName = session?.user?.name || "Tamu";
   
-  // Mock stats
-  const mockStats = { totalSessions: 5, totalMessages: 23 };
+  const [stats, setStats] = useState({ totalSessions: 0, totalMessages: 0 });
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
+
+  useEffect(() => {
+    if (session?.user) {
+      fetch("/api/chat/stats")
+        .then(res => res.json())
+        .then(data => {
+          if (data && typeof data.totalSessions === "number") {
+            setStats(data);
+          }
+        })
+        .catch(console.error)
+        .finally(() => setIsStatsLoading(false));
+    }
+  }, [session]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -112,7 +129,13 @@ export default function DashboardPage() {
               <MessageCircle className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{mockStats.totalSessions}</p>
+              <p className="text-2xl font-bold">
+                {isStatsLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40 inline-block" />
+                ) : (
+                  stats.totalSessions
+                )}
+              </p>
               <p className="text-xs text-muted-foreground">Sesi Konsultasi</p>
             </div>
           </CardContent>
@@ -123,7 +146,13 @@ export default function DashboardPage() {
               <TrendingUp className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{mockStats.totalMessages}</p>
+              <p className="text-2xl font-bold">
+                {isStatsLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40 inline-block" />
+                ) : (
+                  stats.totalMessages
+                )}
+              </p>
               <p className="text-xs text-muted-foreground">Total Pesan</p>
             </div>
           </CardContent>

@@ -1,6 +1,6 @@
 import { BaseService } from "./BaseService";
 import { consultation, message } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { sendMessageToAI } from "@/lib/ai/openrouter";
 import { detectCrisis, CRISIS_RESPONSE } from "@/lib/ai/content-filter";
 
@@ -25,6 +25,68 @@ export class ChatService extends BaseService {
       return newSession;
     } catch (error) {
       this.handleError(error, "membuat sesi konsultasi");
+      throw error;
+    }
+  }
+
+  async deleteSession(sessionId: string, userId: string) {
+    try {
+      const [deletedSession] = await this.database
+        .delete(consultation)
+        .where(
+          and(
+            eq(consultation.id, sessionId),
+            eq(consultation.userId, userId)
+          )
+        )
+        .returning();
+
+      this.log("deleteSession", { sessionId, userId });
+      return deletedSession;
+    } catch (error) {
+      this.handleError(error, "menghapus sesi konsultasi");
+      throw error;
+    }
+  }
+
+  async deleteAllSessions(userId: string) {
+    try {
+      const deletedSessions = await this.database
+        .delete(consultation)
+        .where(eq(consultation.userId, userId))
+        .returning();
+
+      this.log("deleteAllSessions", { userId, count: deletedSessions.length });
+      return deletedSessions;
+    } catch (error) {
+      this.handleError(error, "menghapus semua sesi konsultasi");
+      throw error;
+    }
+  }
+
+  async getChatStats(userId: string) {
+    try {
+      // 1. Hitung total sesi
+      const sessions = await this.database
+        .select({ id: consultation.id })
+        .from(consultation)
+        .where(eq(consultation.userId, userId));
+      const totalSessions = sessions.length;
+
+      // 2. Hitung total pesan
+      let totalMessages = 0;
+      if (totalSessions > 0) {
+        const sessionIds = sessions.map(s => s.id);
+        const messagesCount = await this.database
+          .select({ id: message.id })
+          .from(message)
+          .where(inArray(message.consultationId, sessionIds));
+        totalMessages = messagesCount.length;
+      }
+
+      return { totalSessions, totalMessages };
+    } catch (error) {
+      this.handleError(error, "mengambil statistik chat");
       throw error;
     }
   }

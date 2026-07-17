@@ -27,7 +27,7 @@ async function createAdmin() {
     const existingUser = await db.query.user.findFirst({
       where: eq(user.email, email),
     });
-
+ 
     if (existingUser) {
       console.log("User sudah ada. Memperbarui role ke admin...");
       await db.update(user)

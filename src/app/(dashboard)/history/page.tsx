@@ -6,6 +6,8 @@ import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
 import { chatService } from "@/lib/services/ChatService";
 import { redirect } from "next/navigation";
+import { DeleteSessionButton } from "@/components/history/DeleteSessionButton";
+import { DeleteAllSessionsButton } from "@/components/history/DeleteAllSessionsButton";
 
 export default async function HistoryPage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -18,9 +20,12 @@ export default async function HistoryPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl md:text-3xl font-bold">Riwayat Konsultasi</h1>
-        <p className="text-muted-foreground">Lihat kembali percakapan sebelumnya dengan SjakCare AI.</p>
+      <div className="flex flex-row items-center justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl md:text-3xl font-bold">Riwayat Konsultasi</h1>
+          <p className="text-muted-foreground">Lihat kembali percakapan sebelumnya dengan SjakCare AI.</p>
+        </div>
+        {history.length > 0 && <DeleteAllSessionsButton />}
       </div>
 
       <div className="space-y-4 pt-2">
@@ -48,8 +53,11 @@ export default async function HistoryPage() {
                   </div>
                 </div>
 
-                <div className="hidden sm:flex h-10 w-10 rounded-full bg-primary/10 items-center justify-center shrink-0">
-                  <ChevronRight className="h-5 w-5 text-primary" />
+                <div className="flex items-center gap-2">
+                  <DeleteSessionButton sessionId={session.id} />
+                  <div className="hidden sm:flex h-10 w-10 rounded-full bg-primary/10 items-center justify-center shrink-0">
+                    <ChevronRight className="h-5 w-5 text-primary" />
+                  </div>
                 </div>
               </CardContent>
             </Card>

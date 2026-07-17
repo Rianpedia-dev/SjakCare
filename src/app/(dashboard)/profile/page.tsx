@@ -93,8 +93,8 @@ export default function ProfilePage() {
       toast.error("File harus berupa gambar.");
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Ukuran gambar maksimal 2MB.");
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ukuran gambar maksimal 5MB.");
       return;
     }
 

@@ -5,12 +5,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatBubble } from "./ChatBubble";
 import { Bot } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession } from "@/lib/auth/auth-client";
+import Image from "next/image";
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp?: string;
+  audioUrl?: string;
+  isVoiceMessage?: boolean;
 }
 
 interface ChatWindowProps {
@@ -20,6 +24,7 @@ interface ChatWindowProps {
 
 export function ChatWindow({ messages, isLoading = false }: ChatWindowProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const { data: session } = useSession();
 
   useEffect(() => {
     // Scroll to bottom when messages or loading state changes
@@ -37,8 +42,14 @@ export function ChatWindow({ messages, isLoading = false }: ChatWindowProps) {
           transition={{ duration: 0.5 }}
           className="text-center max-w-sm space-y-4"
         >
-          <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-primary/20 to-emerald-500/20 flex items-center justify-center shadow-inner">
-            <Bot className="h-10 w-10 text-primary animate-pulse" />
+          <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-primary/20 to-emerald-500/20 flex items-center justify-center shadow-inner overflow-hidden">
+            <Image 
+              src="/karakter-ai.png" 
+              alt="SjakCare AI Logo" 
+              width={64} 
+              height={64} 
+              className="object-contain animate-pulse"
+            />
           </div>
           <div className="space-y-2">
             <h3 className="font-bold text-2xl tracking-tight">Halo! Saya SjakCare AI 👋</h3>
@@ -69,6 +80,9 @@ export function ChatWindow({ messages, isLoading = false }: ChatWindowProps) {
                 role={msg.role}
                 content={msg.content}
                 timestamp={msg.timestamp}
+                audioUrl={msg.audioUrl}
+                isVoiceMessage={msg.isVoiceMessage}
+                userImage={session?.user?.image || undefined}
               />
             ))}
           </AnimatePresence>
@@ -82,8 +96,14 @@ export function ChatWindow({ messages, isLoading = false }: ChatWindowProps) {
                 exit={{ opacity: 0, x: -10 }}
                 className="flex gap-3 mr-auto max-w-[85%]"
               >
-                <div className="h-9 w-9 rounded-full bg-emerald-500/10 border-2 border-emerald-500/20 flex items-center justify-center shrink-0">
-                  <Bot className="h-4.5 w-4.5 text-emerald-600" />
+                <div className="h-11 w-11 rounded-full border-2 border-emerald-500/20 flex items-center justify-center shrink-0 overflow-hidden bg-emerald-500/5">
+                  <Image 
+                    src="/karakter-ai.png" 
+                    alt="SjakCare AI Avatar" 
+                    width={44} 
+                    height={44} 
+                    className="object-cover h-full w-full"
+                  />
                 </div>
                 <div className="bg-card border border-border/50 rounded-2xl rounded-tl-none px-5 py-3 shadow-sm flex items-center gap-2">
                   <div className="flex gap-1.5">
