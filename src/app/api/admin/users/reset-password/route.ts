@@ -15,9 +15,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Menggunakan better-auth admin API untuk set password
-    // Casting ke any untuk menghindari error tipe pada saat build Next.js
-    // yang terkadang gagal mendeteksi injeksi plugin secara dinamis
-    await (auth.api as any).admin.setPassword({
+    await (auth.api as any).setUserPassword({
       headers: await headers(),
       body: {
         userId: id,

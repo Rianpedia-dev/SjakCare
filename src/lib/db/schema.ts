@@ -133,3 +133,11 @@ export const knowledgeBase = pgTable("knowledge_base", {
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
 
+// ===== TABLE: system_setting =====
+export const systemSetting = pgTable("system_setting", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+

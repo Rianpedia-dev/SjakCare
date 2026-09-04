@@ -6,6 +6,7 @@ import { consultationService } from "@/lib/services/ConsultationService";
 import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { AIProviderSwitcher } from "@/components/admin/AIProviderSwitcher";
 
 export default async function AdminDashboardPage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -63,6 +64,9 @@ export default async function AdminDashboardPage() {
         />
       </div>
 
+      {/* AI Provider Switcher (Admin Quick Settings) */}
+      <AIProviderSwitcher />
+
       {/* Recent Activity Placeholder */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="shadow-sm">
@@ -90,3 +94,4 @@ export default async function AdminDashboardPage() {
     </div>
   );
 }
+

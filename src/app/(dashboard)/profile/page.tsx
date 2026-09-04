@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useSession, authClient } from "@/lib/auth/auth-client";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+import { AIProviderSwitcher } from "@/components/admin/AIProviderSwitcher";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -397,8 +398,14 @@ export default function ProfilePage() {
               </CardFooter>
             </form>
           </Card>
+
+          {/* AI Provider Switcher (Admin Only) */}
+          {userRole === "admin" && (
+            <AIProviderSwitcher />
+          )}
         </div>
       </div>
     </div>
   );
 }
+
