@@ -41,7 +41,13 @@ export default function ChatSessionPage() {
     if (sessionId && sessionId !== "new" && messages.length === 0) {
       setIsLoading(true);
       fetch(`/api/chat/${sessionId}`)
-        .then(res => res.json())
+        .then(async (res) => {
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || "Sesi tidak ditemukan");
+          }
+          return res.json();
+        })
         .then(data => {
           if (data.messages && data.messages.length > 0) {
             setMessages(data.messages.map((m: any) => ({
@@ -52,10 +58,14 @@ export default function ChatSessionPage() {
             })));
           }
         })
-        .catch(console.error)
+        .catch(err => {
+          console.error("Error loading chat session:", err);
+          toast.error("Sesi konsultasi tidak ditemukan atau telah dihapus.");
+          router.push("/chat/new");
+        })
         .finally(() => setIsLoading(false));
     }
-  }, [sessionId]);
+  }, [sessionId, router]);
 
   const handleAcceptDisclaimer = () => {
     localStorage.setItem("sjakcare_disclaimer_accepted", "true");

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ interface DeleteAllSessionsButtonProps {
 
 export function DeleteAllSessionsButton({ className }: DeleteAllSessionsButtonProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteAll = async () => {
@@ -34,7 +35,11 @@ export function DeleteAllSessionsButton({ className }: DeleteAllSessionsButtonPr
       }
 
       toast.success("Seluruh riwayat sesi berhasil dihapus!");
-      router.refresh(); // Memicu server-side re-validation
+      if (pathname.startsWith("/chat/")) {
+        router.push("/chat/new");
+      } else {
+        router.refresh();
+      }
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Terjadi kesalahan saat menghapus semua sesi.");

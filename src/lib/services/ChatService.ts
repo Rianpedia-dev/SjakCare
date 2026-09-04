@@ -180,6 +180,12 @@ export class ChatService extends BaseService {
     });
   }
 
+  async getSession(sessionId: string) {
+    return this.database.query.consultation.findFirst({
+      where: eq(consultation.id, sessionId),
+    });
+  }
+
   /**
    * POLYMORPHISM: Implementasi spesifik untuk ChatService
    * Menangani respons dari AI atau basis data

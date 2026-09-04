@@ -12,7 +12,15 @@ export async function GET(
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const resolvedParams = await params;
-    const messages = await chatService.getMessages(resolvedParams.id);
+    const sessionId = resolvedParams.id;
+
+    // Pastikan sesi ada di database
+    const chatSession = await chatService.getSession(sessionId);
+    if (!chatSession) {
+      return NextResponse.json({ error: "Sesi tidak ditemukan" }, { status: 404 });
+    }
+
+    const messages = await chatService.getMessages(sessionId);
     return NextResponse.json({ messages });
   } catch (error) {
     console.error("GET Chat Error:", error);
